@@ -100,7 +100,8 @@ python scripts/visualize_results.py --log-dir logs/
 
 The experiments conducted in this project demonstrate that integrating diffusion models to generate synthetic trajectories significantly enhances the sample efficiency and exploration capabilities of the PPO algorithm. Below is an example of the cumulative rewards achieved across different tasks:
 
-![Experimental Results](path/to/plot.png)
+![Experimental Results](https://github.com/user-attachments/assets/da4c862f-4698-46fe-9137-d09dfe1dd51c)
+
 
 ## Contribution
 
