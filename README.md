@@ -103,6 +103,10 @@ The experiments conducted in this project demonstrate that integrating diffusion
 
 ![Experimental Results](https://github.com/user-attachments/assets/da4c862f-4698-46fe-9137-d09dfe1dd51c)
 
+## Training Artifacts
+
+All training datasets, pretrained models, training logs, and videos can be accessed through the following Google Drive link:
+[Google Drive - DiffPPO Training Artifacts](https://drive.google.com/drive/folders/1OhC2U6xYehcEmxVHKvi483HxJtzhQ3g4)
 
 ## Contribution
 
