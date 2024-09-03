@@ -16,7 +16,7 @@ All training datasets, pretrained models, training logs, and videos can be acces
 If you find this project useful for your research, please consider citing our work:
 
 **Paper Title**: Combining Diffusion Models with PPO to Improve Sample Efficiency and Exploration in Reinforcement Learning  
-**Authors**: Tianci Gao, Dmitry, Bo Yang, Shengren Rao, Lao Nie  
+**Authors**: Tianci Gao, Dmitriev D. Dmitry, Konstantin A. Neusypin, Bo Yang, Shengren Rao
 **Year**: 2023  
 **Link**: [arXiv Link](#) (Replace with the actual link)
 
