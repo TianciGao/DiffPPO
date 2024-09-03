@@ -18,7 +18,7 @@ If you find this project useful for your research, please consider citing our wo
 **Paper Title**: Combining Diffusion Models with PPO to Improve Sample Efficiency and Exploration in Reinforcement Learning  
 **Authors**: Tianci Gao, Dmitriev D. Dmitry, Konstantin A. Neusypin, Bo Yang, Shengren Rao
 **Year**: 2023  
-**Link**: [arXiv Link](#) (Replace with the actual link)
+**Link**: 
 
 ## Project Structure
 
