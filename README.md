@@ -15,7 +15,7 @@ All training datasets, pretrained models, training logs, and videos can be acces
 
 If you find this project useful for your research, please consider citing our work:
 
-**Paper**: Combining Diffusion Models with PPO to Improve Sample Efficiency and Exploration in Reinforcement Learning  
+**Paper**: Enhancing Sample Efficiency and Exploration in Reinforcement Learning through the Integration of Diffusion Models and Proximal Policy Optimization 
 **Authors**: Tianci Gao, Dmitriev D. Dmitry, Konstantin A. Neusypin, Bo Yang, Shengren Rao
 **Year**: 2024  
 **Link**: http://arxiv.org/abs/2409.01427
