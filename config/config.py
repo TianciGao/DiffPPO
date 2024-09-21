@@ -1,7 +1,6 @@
 """
 Basic config class - provides a convenient way to work with nested
 dictionaries (by exposing keys as attributes) and to save / load from jsons.
-
 Based on addict: https://github.com/mewwts/addict
 """
 
