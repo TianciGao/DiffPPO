@@ -45,7 +45,7 @@ If you find this project useful for your research, please consider citing our wo
 
 To get started with DiffPPO, ensure that you have the following software installed:
 
-- Python 3.8+
+- Python 3.8
 - Conda (optional, but recommended for managing environments)
 
 ### Installation
