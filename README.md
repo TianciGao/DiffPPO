@@ -35,8 +35,8 @@ If you find this project useful for your research, please consider citing our wo
 ├── configs/                    # Configuration files
 │   └── PPO.json                # Configuration for the PPO algorithm
 ├── README.md                   # Project documentation
-└── requirements.txt            # Python dependencies```
-
+└── requirements.txt            # Python dependencies
+```
 
 ## Getting Started
 
