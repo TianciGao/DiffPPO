@@ -27,15 +27,25 @@ If you find this project useful for your research, please consider citing our wo
 
 plaintext
 ├── datasets/                   # Directory for storing datasets
+
 ├── models/                     # Pretrained models
+
 ├── scripts/                    # Scripts for training, evaluation, and visualization
+
 │   ├── train.py                # Script for training the model
+
 │   ├── evaluate.py             # Script for evaluating the model
+
 │   └── visualize_results.py    # Script for visualizing results
+
 ├── notebooks/                  # Jupyter Notebooks for analysis and visualization
+
 ├── configs/                    # Configuration files
+
 │   └── PPO.json                # Configuration for the PPO algorithm
+
 ├── README.md                   # Project documentation
+
 └── requirements.txt            # Python dependencies
 
 
