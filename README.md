@@ -25,7 +25,7 @@ If you find this project useful for your research, please consider citing our wo
 
 ## Project Structure
 
-```├── datasets/                   # Directory for storing datasets
+├── datasets/                   # Directory for storing datasets
 ├── models/                     # Pretrained models
 ├── scripts/                    # Scripts for training, evaluation, and visualization
 │   ├── train.py                # Script for training the model
@@ -36,7 +36,7 @@ If you find this project useful for your research, please consider citing our wo
 │   └── PPO.json                # Configuration for the PPO algorithm
 ├── README.md                   # Project documentation
 └── requirements.txt            # Python dependencies
-```
+
 
 ## Getting Started
 
