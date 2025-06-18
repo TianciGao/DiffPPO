@@ -4,7 +4,7 @@
 ## Overview
 
 **DiffPPO** is a reinforcement learning framework that integrates diffusion models with Proximal Policy Optimization (PPO) to enhance sample efficiency and exploration capabilities. This project, implemented using the [robomimic](https://robomimic.github.io/) framework, utilizes the [D4RL](https://robomimic.github.io/docs/datasets/d4rl.html) dataset for experiments, demonstrating improved performance in environments with limited data.
-![image](https://github.com/TianciGao/PPO/blob/main/%E6%9C%AA%E5%91%BD%E5%90%8D%E7%BB%98%E5%9B%BE%20(2).png)
+![image](https://github.com/TianciGao/DiffPPO/blob/main/Constr.png)
 
 ## Training Artifacts
 
