@@ -20,7 +20,7 @@ If you find this project useful for your research, please consider citing our wo
 
 **Authors**: Tianci Gao, Dmitriev D. Dmitry, Neusypin A. Konstantin, Bo Yang, Shengren Rao
 
-**Year**: 2024  
+**Year**: 2025  
 
 **Link**: https://arxiv.org/abs/2409.01427
 
