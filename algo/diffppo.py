@@ -584,10 +584,6 @@ def set_seed(seed):
 
 
 def main():
-    """
-    可独立运行（可选）：需要 robomimic 的配置/runner。
-    也可以由 robomimic 的训练脚本调用本算法类。
-    """
     import argparse
     from robomimic.utils import train_utils as TrainUtils
 
