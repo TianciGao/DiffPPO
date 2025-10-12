@@ -1,0 +1,92 @@
+{
+  "algo_name": "diffppo",
+  "experiment": {
+    "name": "ppo_onpolicy_hopper",
+    "validate": false,
+    "logging": { "terminal_output_to_txt": true, "log_tb": true, "log_wandb": false, "wandb_proj_name": "debug" },
+    "save": { "enabled": true, "every_n_seconds": null, "every_n_epochs": 10, "epochs": [], "on_best_validation": true, "on_best_rollout_return": true, "on_best_rollout_success_rate": false },
+    "epoch_every_n_steps": 5000,
+    "validation_epoch_every_n_steps": 10,
+    "env": "hopper-medium-v2",
+    "additional_envs": null,
+    "render": false,
+    "render_video": false,
+    "keep_all_videos": false,
+    "video_skip": 5,
+    "rollout": { "enabled": true, "n": 50, "horizon": 1000, "rate": 1, "warmstart": 0, "terminate_on_success": true }
+  },
+  "train": {
+    "data": null,                       // ★ 纯 on-policy：不加载离线 HDF5
+    "output_dir": "../ppo_trained_models/d4rl/ppo/hopper-medium-v2/trained_models",
+    "num_data_workers": 0,
+    "hdf5_cache_mode": "none",          // ★ 全部关闭
+    "hdf5_use_swmr": false,
+    "hdf5_load_next_obs": false,
+    "hdf5_normalize_obs": false,
+    "hdf5_filter_key": null,
+    "hdf5_validation_filter_key": null,
+    "seq_length": 1,
+    "pad_seq_length": true,
+    "frame_stack": 1,
+    "pad_frame_stack": true,
+    "dataset_keys": ["actions","rewards","dones"],
+    "goal_mode": null,
+    "cuda": true,
+    "batch_size": 256,
+    "num_epochs": 200,
+    "seed": 1
+  },
+  "algo": {
+    "optim_params": {
+      "actor": {
+        "learning_rate": { "initial": 3e-4, "decay_factor": 0.5, "epoch_schedule": [] },
+        "regularization": { "L2": 0.0 },   // ★ 不要 0.1
+        "start_epoch": -1, "end_epoch": -1
+      },
+      "critic": {
+        "learning_rate": { "initial": 3e-4, "decay_factor": 0.5, "epoch_schedule": [] },
+        "regularization": { "L2": 0.0 },
+        "start_epoch": -1, "end_epoch": -1
+      }
+    },
+    "discount": 0.99,
+    "eps_clip": 0.2,
+    "ppo_update_steps": 2,
+    "lamda": 0.95,            // = GAE λ
+    "gae_lambda": 0.95,
+
+    "critic": { "use_huber": true, "max_gradient_norm": 0.5, "layer_dims": [256, 256] },
+    "actor":  { "enabled": true, "layer_dims": [256, 256] },
+
+    "value_loss_coef": 0.5,
+    "entropy_coef": 0.0,      // 我们的实现未显式用熵正则，可置 0
+    "max_grad_norm": 0.5,
+
+    // ========= 关键超参 =========
+    "lambda_kl": 0.005,       // 软先验 KL 权重（5e-3）
+    "lambda_aux": 0.01,       // 辅助模仿权重（1e-2）
+    "use_vg": true,           // 开启价值引导
+    "use_grad_guid": true,    // 开启梯度引导（过程内，对 a 求导）
+    "k_proposals": 10,        // 每状态候选 K
+    "aux_ratio": 0.2,         // 每状态用于 BC 的候选占比（≤0.2）
+    "beta_init": 0.0,         // 能量重加权 β 退火起点
+    "beta_final": 1.0,        // 退火终点
+    "beta_warmup": 0.3,       // 退火前 30% 迭代
+    "alpha_max": 0.30,        // 梯度引导步长上限
+    "use_pet": true,          // 开启 PET（仅 LoRA 参数）
+    "pet_freq": 10,           // 每 10 次 actor 更新做一次 PET
+    "prior_lora_rank": 8,     // LoRA 秩
+    "prior_lora_scale": 1.0,  // LoRA 缩放
+    "policy_kl_target": 0.02  // 仅用于监控与自适应调 lr（代码里用于记录）
+  },
+  "observation": {
+    "modalities": { "obs": { "low_dim": ["flat"], "rgb": [], "depth": [], "scan": [] }, "goal": { "low_dim": [], "rgb": [], "depth": [], "scan": [] } },
+    "encoder": {
+      "low_dim": { "core_class": null, "core_kwargs": {}, "obs_randomizer_class": null, "obs_randomizer_kwargs": {} },
+      "rgb":     { "core_class": "VisualCore", "core_kwargs": {}, "obs_randomizer_class": null, "obs_randomizer_kwargs": {} },
+      "depth":   { "core_class": "VisualCore", "core_kwargs": {}, "obs_randomizer_class": null, "obs_randomizer_kwargs": {} },
+      "scan":    { "core_class": "ScanCore",   "core_kwargs": {}, "obs_randomizer_class": null, "obs_randomizer_kwargs": {} }
+    }
+  },
+  "meta": { "hp_base_config_file": null, "hp_keys": [], "hp_values": [] }
+}
