@@ -1,9 +1,9 @@
-# DiffPPO: Combining Diffusion Models with PPO to Improve Sample Efficiency and Exploration in Reinforcement Learning
+# PPO-DAP: Combining Diffusion Models with PPO to Improve Sample Efficiency and Exploration in Reinforcement Learning
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![arXiv](https://img.shields.io/badge/arXiv-2409.01427v4-b31b1b.svg)](https://arxiv.org/abs/2409.01427v5)
 ## Overview
 
-**DiffPPO** is a reinforcement learning framework that integrates diffusion models with Proximal Policy Optimization (PPO) to enhance sample efficiency and exploration capabilities. This project, implemented using the [robomimic](https://robomimic.github.io/) framework, utilizes the [D4RL](https://robomimic.github.io/docs/datasets/d4rl.html) dataset for experiments, demonstrating improved performance in environments with limited data.
+**PPO-DAP** is a reinforcement learning framework that integrates diffusion models with Proximal Policy Optimization (PPO) to enhance sample efficiency and exploration capabilities. This project, implemented using the [robomimic](https://robomimic.github.io/) framework, utilizes the [D4RL](https://robomimic.github.io/docs/datasets/d4rl.html) dataset for experiments, demonstrating improved performance in environments with limited data.
 ![image](https://github.com/TianciGao/DiffPPO/blob/main/Picture/fig1.png)
 
 ## Training Artifacts
@@ -54,8 +54,8 @@ To get started with DiffPPO, ensure that you have the following software install
 1. Clone the repository:
 
     ```bash
-    git clone https://github.com/yourusername/DiffPPO.git
-    cd DiffPPO
+    git clone https://github.com/yourusername/PPO-DAP.git
+    cd PPO-DAP
     ```
 
 2. Create and activate a Python virtual environment:
