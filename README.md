@@ -10,7 +10,7 @@
 
 All training datasets, pretrained models, training logs, and videos can be accessed through the following Google Drive link:
 
-[Google Drive - DiffPPO Training Artifacts](https://drive.google.com/drive/folders/1OhC2U6xYehcEmxVHKvi483HxJtzhQ3g4)
+[Google Drive - PPO-DAP Training Artifacts](https://drive.google.com/drive/folders/1OhC2U6xYehcEmxVHKvi483HxJtzhQ3g4)
 
 ## Citation
 
@@ -44,7 +44,7 @@ If you find this project useful for your research, please consider citing our wo
 
 ### Prerequisites
 
-To get started with DiffPPO, ensure that you have the following software installed:
+To get started with PPO-DAP, ensure that you have the following software installed:
 
 - Python 3.8
 - Conda (optional, but recommended for managing environments)
@@ -61,7 +61,7 @@ To get started with DiffPPO, ensure that you have the following software install
 2. Create and activate a Python virtual environment:
 
     ```bash
-    conda create -n diffppo_env python=3.8
+    conda create -n ppo-dap_env python=3.8
     conda activate diffppo_env
     ```
 
@@ -116,7 +116,7 @@ The experiments conducted in this project demonstrate that integrating diffusion
 
 ## Contribution
 
-We welcome contributions to DiffPPO. If you would like to contribute, please follow these steps:
+We welcome contributions to PPO-DAP. If you would like to contribute, please follow these steps:
 
 1. Fork the repository.
 2. Create a new branch (`git checkout -b new-feature`).
