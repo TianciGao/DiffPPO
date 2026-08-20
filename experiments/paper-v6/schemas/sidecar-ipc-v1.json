@@ -2,30 +2,30 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/TianciGao/DiffPPO/experiments/paper-v6/schemas/sidecar-ipc-v1.json",
   "title": "PPO-DAP paper-v6 legacy environment sidecar transport v1",
-  "description": "Primitive metadata and base64 numeric bytes only; pickle, runtime object graphs, and remote exceptions are forbidden.",
+  "description": "Digest-bound primitive JSON and exact byte payloads only; pickle, Python object graphs, and remote exception objects are forbidden.",
   "type": "object",
   "additionalProperties": false,
   "required": [
     "schema_version",
+    "wire_protocol",
+    "message_kind",
     "operation",
     "request_id",
     "sequence",
     "environment_configuration_id",
     "environment_instance_id",
     "slot_id",
-    "episode_ordinal",
-    "reset_ordinal",
-    "dtype",
-    "shape",
-    "layout",
-    "numeric_payload_base64",
-    "payload_sha256",
     "status",
     "error_code",
-    "error_message"
+    "error_text",
+    "body",
+    "payloads",
+    "message_digest"
   ],
   "properties": {
     "schema_version": {"const": "ppo_dap_paper_v6_sidecar_ipc_v1"},
+    "wire_protocol": {"const": "versioned_digest_bound_non_pickle_v1"},
+    "message_kind": {"enum": ["request", "response"]},
     "operation": {
       "enum": [
         "handshake",
@@ -41,19 +41,323 @@
     "sequence": {"type": "integer", "minimum": 0},
     "environment_configuration_id": {"$ref": "#/$defs/identity"},
     "environment_instance_id": {"$ref": "#/$defs/identity"},
-    "slot_id": {"type": "integer", "minimum": 0},
-    "episode_ordinal": {"type": "integer", "minimum": 0},
-    "reset_ordinal": {"type": "integer", "minimum": 0},
-    "dtype": {"enum": ["none", "float16", "float32", "float64", "int32", "int64", "uint8"]},
-    "shape": {"type": "array", "items": {"type": "integer", "minimum": 0}},
-    "layout": {"enum": ["none", "contiguous_c", "opaque_bytes"]},
-    "numeric_payload_base64": {"type": "string", "contentEncoding": "base64"},
-    "payload_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "slot_id": {
+      "oneOf": [
+        {"type": "null"},
+        {"$ref": "#/$defs/identity"}
+      ]
+    },
     "status": {"enum": ["request", "ok", "error"]},
-    "error_code": {"type": "string", "pattern": "^[A-Za-z0-9_.-]*$"},
-    "error_message": {"type": "string", "maxLength": 4096}
+    "error_code": {
+      "oneOf": [
+        {"type": "null"},
+        {"type": "string", "pattern": "^[A-Za-z0-9_.-]{1,128}$"}
+      ]
+    },
+    "error_text": {
+      "oneOf": [
+        {"type": "null"},
+        {"type": "string", "minLength": 1, "maxLength": 1024}
+      ]
+    },
+    "body": {"type": "object"},
+    "payloads": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/payload"}
+    },
+    "message_digest": {"$ref": "#/$defs/sha256"}
   },
   "$defs": {
-    "identity": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@+\\-]{0,255}$"}
-  }
+    "identity": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@+\\-]{0,255}$"
+    },
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "dtype",
+        "shape",
+        "layout",
+        "byte_order",
+        "base64_bytes",
+        "sha256"
+      ],
+      "properties": {
+        "name": {"$ref": "#/$defs/identity"},
+        "dtype": {
+          "enum": [
+            "bytes",
+            "float16",
+            "bfloat16",
+            "float32",
+            "float64",
+            "int32",
+            "int64",
+            "uint8"
+          ]
+        },
+        "shape": {
+          "type": "array",
+          "items": {"type": "integer", "minimum": 0}
+        },
+        "layout": {"enum": ["contiguous_c", "scalar", "opaque_bytes"]},
+        "byte_order": {"enum": ["little", "big", "not_applicable"]},
+        "base64_bytes": {"type": "string", "contentEncoding": "base64"},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "rngProvenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "token"],
+      "properties": {
+        "kind": {"enum": ["known", "unknown"]},
+        "token": {
+          "oneOf": [
+            {"type": "null"},
+            {"$ref": "#/$defs/identity"}
+          ]
+        }
+      }
+    },
+    "autoreset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["observation_ref", "episode_ordinal", "reset_ordinal", "rng_provenance"],
+      "properties": {
+        "observation_ref": {"$ref": "#/$defs/identity"},
+        "episode_ordinal": {"type": "integer", "minimum": 0},
+        "reset_ordinal": {"type": "integer", "minimum": 0},
+        "rng_provenance": {"$ref": "#/$defs/rngProvenance"}
+      }
+    },
+    "handshakeBody": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "backend_purpose",
+        "configured_slot_ids",
+        "state_shape",
+        "state_dtype",
+        "state_layout",
+        "state_byte_order",
+        "action_shape",
+        "action_dtype",
+        "action_layout",
+        "action_byte_order",
+        "initial_state_source_id",
+        "initial_state_source_version",
+        "reset_contract_id",
+        "reset_contract_version",
+        "transition_contract_id",
+        "reward_contract_id",
+        "checkpoint_schema_version",
+        "capabilities"
+      ],
+      "properties": {
+        "backend_purpose": {"$ref": "#/$defs/identity"},
+        "configured_slot_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/identity"}
+        },
+        "state_shape": {"$ref": "#/$defs/positiveShape"},
+        "state_dtype": {"enum": ["float16", "bfloat16", "float32", "float64"]},
+        "state_layout": {"const": "contiguous_c"},
+        "state_byte_order": {"enum": ["little", "big"]},
+        "action_shape": {"$ref": "#/$defs/positiveShape"},
+        "action_dtype": {"enum": ["float16", "bfloat16", "float32", "float64"]},
+        "action_layout": {"const": "contiguous_c"},
+        "action_byte_order": {"enum": ["little", "big"]},
+        "initial_state_source_id": {"$ref": "#/$defs/identity"},
+        "initial_state_source_version": {"$ref": "#/$defs/identity"},
+        "reset_contract_id": {"$ref": "#/$defs/identity"},
+        "reset_contract_version": {"$ref": "#/$defs/identity"},
+        "transition_contract_id": {"$ref": "#/$defs/identity"},
+        "reward_contract_id": {"$ref": "#/$defs/identity"},
+        "checkpoint_schema_version": {"$ref": "#/$defs/identity"},
+        "capabilities": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "reset",
+              "step",
+              "capture_checkpoint",
+              "restore_checkpoint",
+              "recapture_checkpoint"
+            ]
+          }
+        }
+      }
+    },
+    "resetBody": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["observation_ref", "episode_ordinal", "reset_ordinal", "rng_provenance"],
+      "properties": {
+        "observation_ref": {"$ref": "#/$defs/identity"},
+        "episode_ordinal": {"type": "integer", "minimum": 0},
+        "reset_ordinal": {"type": "integer", "minimum": 0},
+        "rng_provenance": {"$ref": "#/$defs/rngProvenance"}
+      }
+    },
+    "stepBody": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "next_observation_ref",
+        "episode_ordinal",
+        "terminated",
+        "truncated",
+        "final_observation_ref",
+        "autoreset",
+        "rng_provenance"
+      ],
+      "properties": {
+        "next_observation_ref": {"$ref": "#/$defs/identity"},
+        "episode_ordinal": {"type": "integer", "minimum": 0},
+        "terminated": {"type": "boolean"},
+        "truncated": {"type": "boolean"},
+        "final_observation_ref": {
+          "oneOf": [{"type": "null"}, {"$ref": "#/$defs/identity"}]
+        },
+        "autoreset": {
+          "oneOf": [{"type": "null"}, {"$ref": "#/$defs/autoreset"}]
+        },
+        "rng_provenance": {"$ref": "#/$defs/rngProvenance"}
+      },
+      "not": {
+        "properties": {"terminated": {"const": true}, "truncated": {"const": true}},
+        "required": ["terminated", "truncated"]
+      }
+    },
+    "checkpointBody": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["checkpoint_schema_version"],
+      "properties": {
+        "checkpoint_schema_version": {"$ref": "#/$defs/identity"}
+      }
+    },
+    "emptyBody": {"type": "object", "maxProperties": 0},
+    "positiveShape": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "integer", "minimum": 1}
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {"message_kind": {"const": "request"}},
+        "required": ["message_kind"]
+      },
+      "then": {
+        "properties": {
+          "status": {"const": "request"},
+          "error_code": {"const": null},
+          "error_text": {"const": null}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {"message_kind": {"const": "response"}},
+        "required": ["message_kind"]
+      },
+      "then": {"properties": {"status": {"enum": ["ok", "error"]}}}
+    },
+    {
+      "if": {"properties": {"status": {"const": "ok"}}, "required": ["status"]},
+      "then": {
+        "properties": {"error_code": {"const": null}, "error_text": {"const": null}}
+      }
+    },
+    {
+      "if": {"properties": {"status": {"const": "error"}}, "required": ["status"]},
+      "then": {
+        "properties": {
+          "error_code": {"type": "string", "pattern": "^[A-Za-z0-9_.-]{1,128}$"},
+          "error_text": {"type": "string", "minLength": 1, "maxLength": 1024},
+          "payloads": {"maxItems": 0}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {"operation": {"const": "handshake"}, "status": {"const": "ok"}},
+        "required": ["operation", "status"]
+      },
+      "then": {"properties": {"body": {"$ref": "#/$defs/handshakeBody"}}}
+    },
+    {
+      "if": {
+        "properties": {"operation": {"const": "reset"}, "status": {"const": "ok"}},
+        "required": ["operation", "status"]
+      },
+      "then": {"properties": {"body": {"$ref": "#/$defs/resetBody"}}}
+    },
+    {
+      "if": {
+        "properties": {"operation": {"const": "step"}, "status": {"const": "ok"}},
+        "required": ["operation", "status"]
+      },
+      "then": {"properties": {"body": {"$ref": "#/$defs/stepBody"}}}
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {"enum": ["capture_checkpoint", "recapture_checkpoint"]},
+          "status": {"const": "ok"}
+        },
+        "required": ["operation", "status"]
+      },
+      "then": {"properties": {"body": {"$ref": "#/$defs/checkpointBody"}}}
+    },
+    {
+      "if": {
+        "properties": {
+          "message_kind": {"const": "request"},
+          "operation": {"const": "restore_checkpoint"}
+        },
+        "required": ["message_kind", "operation"]
+      },
+      "then": {"properties": {"body": {"$ref": "#/$defs/checkpointBody"}}}
+    },
+    {
+      "if": {
+        "properties": {
+          "message_kind": {"const": "request"},
+          "operation": {
+            "enum": ["handshake", "reset", "step", "capture_checkpoint", "recapture_checkpoint", "close"]
+          }
+        },
+        "required": ["message_kind", "operation"]
+      },
+      "then": {"properties": {"body": {"$ref": "#/$defs/emptyBody"}}}
+    },
+    {
+      "if": {
+        "properties": {
+          "message_kind": {"const": "response"},
+          "operation": {"enum": ["restore_checkpoint", "close"]},
+          "status": {"const": "ok"}
+        },
+        "required": ["message_kind", "operation", "status"]
+      },
+      "then": {"properties": {"body": {"$ref": "#/$defs/emptyBody"}}}
+    },
+    {
+      "if": {
+        "properties": {"status": {"const": "error"}},
+        "required": ["status"]
+      },
+      "then": {"properties": {"body": {"$ref": "#/$defs/emptyBody"}}}
+    }
+  ]
 }
