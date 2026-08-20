@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/TianciGao/DiffPPO/experiments/paper-v6/schemas/sidecar-ipc-v1.json",
+  "title": "PPO-DAP paper-v6 legacy environment sidecar transport v1",
+  "description": "Primitive metadata and base64 numeric bytes only; pickle, runtime object graphs, and remote exceptions are forbidden.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "operation",
+    "request_id",
+    "sequence",
+    "environment_configuration_id",
+    "environment_instance_id",
+    "slot_id",
+    "episode_ordinal",
+    "reset_ordinal",
+    "dtype",
+    "shape",
+    "layout",
+    "numeric_payload_base64",
+    "payload_sha256",
+    "status",
+    "error_code",
+    "error_message"
+  ],
+  "properties": {
+    "schema_version": {"const": "ppo_dap_paper_v6_sidecar_ipc_v1"},
+    "operation": {
+      "enum": [
+        "handshake",
+        "reset",
+        "step",
+        "capture_checkpoint",
+        "restore_checkpoint",
+        "recapture_checkpoint",
+        "close"
+      ]
+    },
+    "request_id": {"$ref": "#/$defs/identity"},
+    "sequence": {"type": "integer", "minimum": 0},
+    "environment_configuration_id": {"$ref": "#/$defs/identity"},
+    "environment_instance_id": {"$ref": "#/$defs/identity"},
+    "slot_id": {"type": "integer", "minimum": 0},
+    "episode_ordinal": {"type": "integer", "minimum": 0},
+    "reset_ordinal": {"type": "integer", "minimum": 0},
+    "dtype": {"enum": ["none", "float16", "float32", "float64", "int32", "int64", "uint8"]},
+    "shape": {"type": "array", "items": {"type": "integer", "minimum": 0}},
+    "layout": {"enum": ["none", "contiguous_c", "opaque_bytes"]},
+    "numeric_payload_base64": {"type": "string", "contentEncoding": "base64"},
+    "payload_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "status": {"enum": ["request", "ok", "error"]},
+    "error_code": {"type": "string", "pattern": "^[A-Za-z0-9_.-]*$"},
+    "error_message": {"type": "string", "maxLength": 4096}
+  },
+  "$defs": {
+    "identity": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@+\\-]{0,255}$"}
+  }
+}

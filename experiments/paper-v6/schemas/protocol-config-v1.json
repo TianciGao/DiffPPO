@@ -1,0 +1,141 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/TianciGao/DiffPPO/experiments/paper-v6/schemas/protocol-config-v1.json",
+  "title": "PPO-DAP paper-v6 protocol configuration v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "configuration_purpose", "d01", "d02", "d05", "d06"],
+  "properties": {
+    "schema_version": {"const": "ppo_dap_paper_v6_protocol_config_v1"},
+    "configuration_purpose": {
+      "enum": ["fixture_only_non_scientific", "prospective_scientific_run"]
+    },
+    "d01": {"$ref": "#/$defs/d01"},
+    "d02": {"$ref": "#/$defs/d02"},
+    "d05": {"$ref": "#/$defs/d05"},
+    "d06": {"$ref": "#/$defs/d06"}
+  },
+  "$defs": {
+    "nonemptyString": {"type": "string", "minLength": 1},
+    "positiveInteger": {"type": "integer", "minimum": 1},
+    "positiveNumber": {"type": "number", "exclusiveMinimum": 0},
+    "positiveFloatArray": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "number", "exclusiveMinimum": 0}
+    },
+    "topology": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "integer", "minimum": 1}
+    },
+    "d01": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["seed_ids", "seed_count", "matched_seed_group"],
+      "properties": {
+        "seed_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "integer", "minimum": 0, "maximum": 18446744073709551615}
+        },
+        "seed_count": {"$ref": "#/$defs/positiveInteger"},
+        "matched_seed_group": {"$ref": "#/$defs/nonemptyString"}
+      }
+    },
+    "d02": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cadence_env_steps", "episode_count", "horizon_policy", "alc_evaluation_grid"],
+      "properties": {
+        "cadence_env_steps": {"$ref": "#/$defs/positiveInteger"},
+        "episode_count": {"$ref": "#/$defs/positiveInteger"},
+        "horizon_policy": {"$ref": "#/$defs/nonemptyString"},
+        "alc_evaluation_grid": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "integer", "minimum": 0}
+        }
+      }
+    },
+    "d05": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "trainer_kind",
+        "optimizer_kind",
+        "schedule_kind",
+        "device",
+        "architecture_kind",
+        "activation_kind",
+        "sigma_feature_kind",
+        "output_kind",
+        "bias_kind",
+        "init_kind",
+        "training_noise_law_kind",
+        "normalization_rule",
+        "prior_epoch_count",
+        "prior_step_size",
+        "hidden_width",
+        "residual_block_count",
+        "dtype",
+        "sigma_support",
+        "sigma_masses",
+        "estimator_chunk_size"
+      ],
+      "properties": {
+        "trainer_kind": {"const": "full_doff_plain_gradient_descent_v1"},
+        "optimizer_kind": {"const": "stateless_functional_plain_gd_v1"},
+        "schedule_kind": {"const": "constant_v1"},
+        "device": {"const": "cpu"},
+        "architecture_kind": {"const": "vector_residual_mlp_clean_action_v1"},
+        "activation_kind": {"const": "silu_v1"},
+        "sigma_feature_kind": {"const": "raw_sigma_scalar_v1"},
+        "output_kind": {"const": "direct_clean_model_action_v1"},
+        "bias_kind": {"const": "all_affines_have_bias_v1"},
+        "init_kind": {"const": "fan_average_uniform_zero_bias_v1"},
+        "training_noise_law_kind": {"const": "finite_categorical_v1"},
+        "normalization_rule": {"const": "binary64_left_to_right_rne_v1"},
+        "prior_epoch_count": {"$ref": "#/$defs/positiveInteger"},
+        "prior_step_size": {"$ref": "#/$defs/positiveNumber"},
+        "hidden_width": {"type": "integer", "minimum": 3},
+        "residual_block_count": {"$ref": "#/$defs/positiveInteger"},
+        "dtype": {"enum": ["float16", "bfloat16", "float32", "float64"]},
+        "sigma_support": {"$ref": "#/$defs/positiveFloatArray"},
+        "sigma_masses": {"$ref": "#/$defs/positiveFloatArray"},
+        "estimator_chunk_size": {"$ref": "#/$defs/positiveInteger"}
+      }
+    },
+    "d06": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "actor_topology",
+        "critic_topology",
+        "initialization_identity",
+        "actor_min_log_std",
+        "actor_initial_log_std",
+        "actor_max_log_std",
+        "gamma",
+        "actor_epoch_count",
+        "critic_epoch_count",
+        "actor_step_size",
+        "critic_step_size"
+      ],
+      "properties": {
+        "actor_topology": {"$ref": "#/$defs/topology"},
+        "critic_topology": {"$ref": "#/$defs/topology"},
+        "initialization_identity": {"$ref": "#/$defs/nonemptyString"},
+        "actor_min_log_std": {"type": "array", "minItems": 1, "items": {"type": "number"}},
+        "actor_initial_log_std": {"type": "array", "minItems": 1, "items": {"type": "number"}},
+        "actor_max_log_std": {"type": "array", "minItems": 1, "items": {"type": "number"}},
+        "gamma": {"type": "number", "minimum": 0, "exclusiveMaximum": 1},
+        "actor_epoch_count": {"$ref": "#/$defs/positiveInteger"},
+        "critic_epoch_count": {"$ref": "#/$defs/positiveInteger"},
+        "actor_step_size": {"$ref": "#/$defs/positiveNumber"},
+        "critic_step_size": {"$ref": "#/$defs/positiveNumber"}
+      }
+    }
+  }
+}
