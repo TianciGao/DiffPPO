@@ -1,9 +1,7 @@
 # Theory conformance statement
 
 PPO-DAP `v0.1.0` is a clean-room implementation based on paper v6
-([`arXiv:2409.01427v6`](https://arxiv.org/abs/2409.01427v6)). Its algorithm
-implementation and theory-conformance audit are complete. Experimental
-reproduction is not complete and is not claimed.
+([`arXiv:2409.01427v6`](https://arxiv.org/abs/2409.01427v6)). 
 
 ## Audited inventory
 
