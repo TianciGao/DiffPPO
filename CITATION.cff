@@ -1,0 +1,29 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite the PPO-DAP paper."
+title: "PPO-DAP clean-room implementation"
+type: software
+version: 0.1.0
+date-released: 2026-08-20
+license: MIT
+repository-code: "https://github.com/TianciGao/DiffPPO"
+url: "https://github.com/TianciGao/DiffPPO"
+authors:
+  - family-names: Gao
+    given-names: Tianci
+preferred-citation:
+  type: article
+  title: "Enhancing Sample Efficiency and Exploration in Reinforcement Learning through the Integration of Diffusion Models and Proximal Policy Optimization"
+  authors:
+    - family-names: Gao
+      given-names: Tianci
+    - family-names: Neusypin
+      given-names: Konstantin A.
+    - family-names: Dmitriev
+      given-names: Dmitry D.
+    - family-names: Yang
+      given-names: Bo
+    - family-names: Rao
+      given-names: Shengren
+  year: 2024
+  doi: "10.48550/arXiv.2409.01427"
+  url: "https://arxiv.org/abs/2409.01427v6"
