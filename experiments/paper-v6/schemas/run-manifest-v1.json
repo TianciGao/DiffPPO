@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/TianciGao/DiffPPO/experiments/paper-v6/schemas/run-manifest-v1.json",
+  "title": "PPO-DAP paper-v6 run manifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "experiment_id",
+    "run_id",
+    "release_repository",
+    "release_tag",
+    "release_commit",
+    "release_tree",
+    "protocol_config_digest",
+    "dataset_manifest_digest",
+    "environment_identity",
+    "replicate_id",
+    "seed_id",
+    "rng_topology_digest",
+    "hardware_identity",
+    "runtime_identity",
+    "artifact_generation_identity"
+  ],
+  "properties": {
+    "schema_version": {"const": "ppo_dap_paper_v6_run_manifest_v1"},
+    "experiment_id": {"$ref": "#/$defs/identity"},
+    "run_id": {"$ref": "#/$defs/identity"},
+    "release_repository": {"const": "TianciGao/DiffPPO"},
+    "release_tag": {"const": "v0.1.0"},
+    "release_commit": {"const": "31dac8148a84204b9db506909edd8fb92822fcba"},
+    "release_tree": {"const": "3ca1845dfbc46316c37236b49cee9d64ee2e3678"},
+    "protocol_config_digest": {"$ref": "#/$defs/sha256"},
+    "dataset_manifest_digest": {"$ref": "#/$defs/sha256"},
+    "environment_identity": {"$ref": "#/$defs/identity"},
+    "replicate_id": {"$ref": "#/$defs/identity"},
+    "seed_id": {"type": "integer", "minimum": 0, "maximum": 18446744073709551615},
+    "rng_topology_digest": {"$ref": "#/$defs/sha256"},
+    "hardware_identity": {"$ref": "#/$defs/identity"},
+    "runtime_identity": {"$ref": "#/$defs/identity"},
+    "artifact_generation_identity": {"$ref": "#/$defs/identity"}
+  },
+  "$defs": {
+    "identity": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@+\\-]{0,255}$"},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

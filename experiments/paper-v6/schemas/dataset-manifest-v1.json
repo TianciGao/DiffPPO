@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/TianciGao/DiffPPO/experiments/paper-v6/schemas/dataset-manifest-v1.json",
+  "title": "PPO-DAP paper-v6 dataset manifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "task",
+    "dataset_identity",
+    "dataset_version",
+    "source_type",
+    "source_location",
+    "byte_count",
+    "sha256",
+    "source_schema",
+    "environment_identity",
+    "environment_build_identity",
+    "ordered_transition_provenance",
+    "state",
+    "action",
+    "reward",
+    "next_state",
+    "conversion_tool",
+    "conversion_version",
+    "converted_manifest_digest"
+  ],
+  "properties": {
+    "schema_version": {"const": "ppo_dap_paper_v6_dataset_manifest_v1"},
+    "task": {"$ref": "#/$defs/identity"},
+    "dataset_identity": {"$ref": "#/$defs/identity"},
+    "dataset_version": {"$ref": "#/$defs/identity"},
+    "source_type": {
+      "enum": ["historical_d4rl", "historical_self_collected", "prospective_regenerated"]
+    },
+    "source_location": {"type": "string", "pattern": "^(https://|file:|artifact:)[^\\s]+$"},
+    "byte_count": {"type": "integer", "minimum": 1},
+    "sha256": {"$ref": "#/$defs/sha256"},
+    "source_schema": {"$ref": "#/$defs/identity"},
+    "environment_identity": {"$ref": "#/$defs/identity"},
+    "environment_build_identity": {"$ref": "#/$defs/identity"},
+    "ordered_transition_provenance": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/provenance"}
+    },
+    "state": {"$ref": "#/$defs/tensor"},
+    "action": {"$ref": "#/$defs/tensor"},
+    "reward": {"$ref": "#/$defs/tensor"},
+    "next_state": {"$ref": "#/$defs/tensor"},
+    "conversion_tool": {"$ref": "#/$defs/identity"},
+    "conversion_version": {"$ref": "#/$defs/identity"},
+    "converted_manifest_digest": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "identity": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@+\\-]{0,255}$"},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ordinal", "source_segment_id", "first_transition", "transition_count", "segment_sha256"],
+      "properties": {
+        "ordinal": {"type": "integer", "minimum": 0},
+        "source_segment_id": {"$ref": "#/$defs/identity"},
+        "first_transition": {"type": "integer", "minimum": 0},
+        "transition_count": {"type": "integer", "minimum": 1},
+        "segment_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "tensor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["shape", "dtype", "device", "layout"],
+      "properties": {
+        "shape": {"type": "array", "items": {"type": "integer", "minimum": 0}},
+        "dtype": {"enum": ["float16", "bfloat16", "float32", "float64", "int32", "int64"]},
+        "device": {"const": "cpu"},
+        "layout": {"enum": ["contiguous_c", "scalar"]}
+      }
+    }
+  }
+}

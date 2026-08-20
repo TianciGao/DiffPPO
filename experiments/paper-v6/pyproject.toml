@@ -1,0 +1,39 @@
+[build-system]
+requires = ["uv_build==0.12.0"]
+build-backend = "uv_build"
+
+[project]
+name = "ppo-dap-paper-v6-experiments"
+version = "0.0.0"
+description = "Fail-closed experiment foundation for PPO-DAP paper-v6 protocols"
+readme = "README.md"
+license = "MIT"
+requires-python = "==3.12.3"
+dependencies = [
+    "ppo-dap @ git+https://github.com/TianciGao/DiffPPO.git@31dac8148a84204b9db506909edd8fb92822fcba",
+]
+
+[dependency-groups]
+dev = [
+    "pytest==9.1.1",
+]
+
+[tool.uv]
+required-version = "==0.12.0"
+python-preference = "system"
+python-downloads = "manual"
+prerelease = "disallow"
+
+[tool.uv.build-backend]
+module-name = "ppo_dap_paper_v6"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = ["--strict-config", "--strict-markers", "--import-mode=importlib"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I", "UP"]
