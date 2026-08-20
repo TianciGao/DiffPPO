@@ -11,8 +11,6 @@ This repository provides an independent clean-room implementation of **PPO-DAP (
 
 PPO-DAP keeps the PPO estimator strictly on-policy while using a conditional diffusion action prior to improve exploration around the states visited by the current policy. The prior is pretrained on logged trajectories, adapted online through a small PET/LoRA parameter subset, and used to generate value-guided action proposals. Synthetic proposals influence the actor only through auxiliary regularization; they never enter the PPO/GAE estimator.
 
-> **Repository status.** `v0.1.0` is the released theory-core implementation. The package has been independently validated with `350 passed / 0 failed`. Paper-scale empirical reproduction is **not yet complete**: this repository does not currently claim reproduction of the paper's returns, learning curves, runtime, GPU behavior, or benchmarks.
-
 ## Method at a glance
 
 ```mermaid
