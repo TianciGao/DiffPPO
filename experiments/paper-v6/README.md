@@ -1,33 +1,39 @@
-# PPO-DAP paper-v6 experiment foundation
+# Experiment setup
 
-This subproject is the fail-closed foundation for prospective paper-v6
-experiments. The algorithm authority is the immutable public release
-`TianciGao/DiffPPO@v0.1.0`, commit
-`31dac8148a84204b9db506909edd8fb92822fcba`.
+This directory contains the initial configuration tools for experiments based on [PPO-DAP paper version 6](https://arxiv.org/abs/2409.01427v6). It uses the fixed [`v0.1.0` library release](https://github.com/TianciGao/DiffPPO/releases/tag/v0.1.0).
 
-This slice contains only:
+## Available on this branch
 
-- all-required protocol configuration;
-- canonical run and dataset manifests;
-- deterministic RNG stream identities and seed derivation;
-- the versioned schema for a future legacy-environment sidecar.
+- Validation of experiment settings, with required values supplied explicitly.
+- Records identifying datasets and runs, including file checksums.
+- Reproducible seeds and separate random-number streams.
+- A message-format specification for a simulator running in a separate process.
 
-It contains no environment client/server, Stage-I or Stage-II execution,
-evaluation loop, dataset download, or scientific configuration defaults.
-Every test value is marked `fixture_only_non_scientific`.
+This branch does not yet contain an environment connection, training or evaluation loop, or dataset downloader. More developed tooling is available on the [experiment branch](https://github.com/TianciGao/DiffPPO/tree/experiment/paper-v6-e1/experiments/paper-v6). Full experiment reproduction remains unfinished.
 
-The unresolved scientific choices D01, D02, D05, and D06 must be supplied in
-an explicit protocol document before the corresponding real experiment.
-Missing values are contract violations; they are never inferred.
+## Settings needed before training
 
-## Foundation checks
+The experiment protocol must specify:
 
-From this directory, with Python 3.12.3 and uv 0.12.0:
+| Area | Required choices |
+| --- | --- |
+| Repeated runs | Random seeds, number of runs, and matching of seeds across methods. |
+| Evaluation | Evaluation frequency, episode count, time limits, and learning-curve measurement points. |
+| Prior pretraining | Model size, number of training passes, learning rate, numeric precision, and noise settings. |
+| Actor and critic | Network sizes, initialization, policy standard-deviation limits, discount factor, and update settings. |
 
-```console
+See the [configuration schema](schemas/protocol-config-v1.json) and [configuration implementation](src/ppo_dap_paper_v6/config.py) for exact field names. Missing settings are rejected. Test configurations are examples for software checks, not recommended scientific settings.
+
+## Run the checks
+
+Use a checkout of `main` with **Python 3.12.3** and **uv 0.12.0** installed. From the repository root:
+
+```bash
+cd experiments/paper-v6
 uv sync --frozen --all-groups
 uv run pytest
 ```
 
-These checks are bounded unit and identity tests. They do not construct an
-environment, consume environment steps, use a GPU, or run PPO-DAP training.
+These tests check configuration, dataset handling, seeds, and the pinned library version. They do not run environment interaction or PPO-DAP training.
+
+The library is pinned to commit [`31dac8148a84204b9db506909edd8fb92822fcba`](https://github.com/TianciGao/DiffPPO/commit/31dac8148a84204b9db506909edd8fb92822fcba). Keep this version identifier with any experiment records.

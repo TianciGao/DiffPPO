@@ -1,6 +1,6 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite the PPO-DAP paper."
-title: "PPO-DAP clean-room implementation"
+title: "PPO-DAP: PPO with a Diffusion Action Prior"
 type: software
 version: 0.1.0
 date-released: 2026-08-20
