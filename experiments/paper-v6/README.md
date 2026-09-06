@@ -1,19 +1,27 @@
-# Experiment setup
+# Experiment tools
 
-This directory contains the initial configuration tools for experiments based on [PPO-DAP paper version 6](https://arxiv.org/abs/2409.01427v6). It uses the fixed [`v0.1.0` library release](https://github.com/TianciGao/DiffPPO/releases/tag/v0.1.0).
+This directory provides configuration, environment interfaces, evaluation, and reporting tools for [PPO-DAP paper version 6](https://arxiv.org/abs/2409.01427v6). It uses the fixed [`v0.1.0` algorithm library](https://github.com/TianciGao/DiffPPO/releases/tag/v0.1.0).
 
-## Available on this branch
+**The tools have been developed and tested with a simulated test backend. Real-environment training and full reproduction of the paper's results remain unfinished.**
 
-- Validation of experiment settings, with required values supplied explicitly.
-- Records identifying datasets and runs, including file checksums.
-- Reproducible seeds and separate random-number streams.
-- A message-format specification for a simulator running in a separate process.
+## Available tools
 
-This branch does not yet contain an environment connection, training or evaluation loop, or dataset downloader. More developed tooling is available on the [experiment branch](https://github.com/TianciGao/DiffPPO/tree/experiment/paper-v6-e1/experiments/paper-v6). Full experiment reproduction remains unfinished.
+| Area | What is implemented |
+| --- | --- |
+| Configuration and records | Required experiment settings, dataset and run records, and reproducible random-number streams. |
+| Environment connection | A separate-process communication layer, an environment adapter, and checkpoint-state transfer. |
+| Training integration | Input builders for prior pretraining and online learning, plus checks for caller-supplied actor and critic models. |
+| Evaluation | Deterministic evaluation using the policy's mean action. |
+| Metrics | Area under the learning curve over the first 40 epochs (ALC@40), Student-t 95% confidence intervals, and paired Wilcoxon comparisons. |
+| Reporting | Resource measurements and output records protected against accidental overwriting. |
 
-## Settings needed before training
+See the [source directory](src/ppo_dap_paper_v6/) and the [separate-process environment documentation](sidecar/README.md).
 
-The experiment protocol must specify:
+## What is needed for a real experiment
+
+A real Gym, D4RL, or MuJoCo backend is not included. The current implementation record reports no real-environment execution, dataset download, prior pretraining, online training, or GPU workload.
+
+Before training, provide a compatible environment and dataset, then document these settings:
 
 | Area | Required choices |
 | --- | --- |
@@ -22,11 +30,11 @@ The experiment protocol must specify:
 | Prior pretraining | Model size, number of training passes, learning rate, numeric precision, and noise settings. |
 | Actor and critic | Network sizes, initialization, policy standard-deviation limits, discount factor, and update settings. |
 
-See the [configuration schema](schemas/protocol-config-v1.json) and [configuration implementation](src/ppo_dap_paper_v6/config.py) for exact field names. Missing settings are rejected. Test configurations are examples for software checks, not recommended scientific settings.
+The [configuration schema](schemas/protocol-config-v1.json) and [configuration code](src/ppo_dap_paper_v6/config.py) define the exact fields. Missing settings are rejected; the test recipes do not supply scientific defaults. The dependency set for the real environment must also be fixed and recorded.
 
 ## Run the checks
 
-Use a checkout of `main` with **Python 3.12.3** and **uv 0.12.0** installed. From the repository root:
+Use a checkout of `experiment/paper-v6-e1` with **Python 3.12.3** and **uv 0.12.0** installed. From the repository root:
 
 ```bash
 cd experiments/paper-v6
@@ -34,6 +42,6 @@ uv sync --frozen --all-groups
 uv run pytest
 ```
 
-These tests check configuration, dataset handling, seeds, and the pinned library version. They do not run environment interaction or PPO-DAP training.
+The tests use only the deterministic test backend. They check interfaces and library compatibility without running a real simulator, GPU workload, or PPO-DAP training experiment. The label `fixture_only_non_scientific` in test files means exactly that: software-test data only.
 
-The library is pinned to commit [`31dac8148a84204b9db506909edd8fb92822fcba`](https://github.com/TianciGao/DiffPPO/commit/31dac8148a84204b9db506909edd8fb92822fcba). Keep this version identifier with any experiment records.
+The algorithm dependency is pinned to commit [`31dac8148a84204b9db506909edd8fb92822fcba`](https://github.com/TianciGao/DiffPPO/commit/31dac8148a84204b9db506909edd8fb92822fcba). Pin the experiment branch to a commit as well when recording a run.

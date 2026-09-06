@@ -11,6 +11,7 @@ license = "MIT"
 requires-python = "==3.12.3"
 dependencies = [
     "ppo-dap @ git+https://github.com/TianciGao/DiffPPO.git@31dac8148a84204b9db506909edd8fb92822fcba",
+    "scipy==1.18.0",
 ]
 
 [dependency-groups]
