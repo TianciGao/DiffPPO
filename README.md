@@ -1,135 +1,83 @@
-# PPO-DAP
+# DiffPPO: PPO with a Diffusion Action Prior
 
-**Diffusion Action Priors for strictly on-policy PPO**
+**Research code for PPO-DAP, a method for improving exploration in continuous-control reinforcement learning.**
 
 [![Paper](https://img.shields.io/badge/arXiv-2409.01427v6-b31b1b.svg)](https://arxiv.org/abs/2409.01427v6)
 [![Release](https://img.shields.io/badge/release-v0.1.0-blue.svg)](https://github.com/TianciGao/DiffPPO/releases/tag/v0.1.0)
 [![Python](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-This repository provides an independent clean-room implementation of **PPO-DAP (PPO with Diffusion Action Prior)** from the paper [*Enhancing Sample Efficiency and Exploration in Reinforcement Learning through the Integration of Diffusion Models and Proximal Policy Optimization*](https://arxiv.org/abs/2409.01427v6).
+PPO-DAP combines **Proximal Policy Optimization (PPO)** with a diffusion model that suggests actions for a given state. The model first learns from recorded trajectories. During online training, a critic scores its suggestions, which provide a small additional learning signal for the policy. PPO's probability ratios, advantage estimates, and critic updates use only fresh environment interactions.
 
-PPO-DAP keeps the PPO estimator strictly on-policy while using a conditional diffusion action prior to improve exploration around the states visited by the current policy. The prior is pretrained on logged trajectories, adapted online through a small PET/LoRA parameter subset, and used to generate value-guided action proposals. Synthetic proposals influence the actor only through auxiliary regularization; they never enter the PPO/GAE estimator.
+This repository implements the method described in [our paper](https://arxiv.org/abs/2409.01427v6). The Python package is named `ppo_dap`.
 
-## Method at a glance
+## Research overview
 
-```mermaid
-flowchart LR
-    Doff["Logged trajectories D_off"] --> PriorTrain["Stage I: train conditional diffusion prior"]
-    PriorTrain --> Prior["Diffusion prior"]
+The paper evaluates PPO-DAP on eight MuJoCo tasks with an online budget of one million environment steps per task, following offline pretraining. It reports improved early learning and final returns that match or exceed the strongest on-policy baselines on six of the eight tasks. See the [paper](https://arxiv.org/abs/2409.01427v6) for the full comparisons and protocol.
 
-    Rollout["Fresh on-policy rollout D_on"] --> PPO["GAE + PPO actor/critic"]
-    Rollout --> States["Current on-policy states"]
-    States --> Prior
-    Prior --> Proposals["Multiple action proposals"]
-    Proposals --> Guidance["Value guidance: Eq. (7) / Eq. (8) / Eq. (9)"]
-    Guidance --> Dsyn["Synthetic proposal set D_syn"]
-    Dsyn --> Aux["Low-weight actor auxiliary signal"]
-    Aux --> PPO
-    PPO --> PET["PET update on D_on"]
-    PET --> Prior
-```
+**These are the paper's reported results. Reproducing them with this implementation remains unfinished.** The released software provides the algorithm components and their tests; experimental tooling is being developed separately.
 
-The implementation preserves four central boundaries:
+## How it works
 
-- **On-policy PPO:** PPO/GAE and critic updates use fresh `D_on` only.
-- **Separated synthetic data:** `D_syn` affects the actor only through auxiliary terms; it is not treated as an on-policy rollout.
-- **Controlled prior adaptation:** the online prior backbone is frozen; PET updates only its designated parameter subset.
-- **Read-only monitoring:** diagnostics report training behavior but do not silently change the optimization procedure.
+1. **Learn action suggestions.** Train a state-conditioned diffusion model on recorded trajectories.
+2. **Collect new experience.** Run the current policy in the environment and compute PPO's training quantities.
+3. **Guide the policy.** Generate candidate actions at the visited states, guide them using critic estimates, and use them in a small auxiliary policy loss.
+4. **Adapt the prior.** Update a small subset of diffusion-model parameters using the new experience, keeping its main network fixed.
 
-See [Algorithm](docs/ALGORITHM.md) for the full execution flow and [Implementation map](docs/IMPLEMENTATION.md) for the paper-to-code mapping.
+Generated actions are used only in the auxiliary policy terms. The [algorithm guide](docs/ALGORITHM.md) explains the data flow and update order.
 
-## Repository structure
+## Install and check
 
-```text
-DiffPPO/
-├── src/ppo_dap/             # PPO-DAP theory-core implementation
-│   ├── actions/             # action types and action-space contracts
-│   ├── estimators/          # GAE, PPO and value estimators
-│   ├── prior/               # conditional diffusion prior
-│   ├── value_guidance/      # value-guided proposal mechanisms
-│   ├── objectives/          # actor, critic and PET objectives
-│   ├── interfaces/          # composition and ownership boundaries
-│   ├── algorithm/           # iteration state and orchestration contracts
-│   ├── runtime/             # multi-iteration runtime, RNG and checkpointing
-│   └── warm_start/          # controlled initialization support
-├── tests/                   # 350-test validation suite
-├── docs/                    # algorithm, implementation and conformance docs
-├── pyproject.toml
-└── uv.lock
-```
-
-Some source and test filenames retain internal milestone labels such as `g3`–`g7` and `v1`–`v4`. They are historical implementation boundaries preserved for traceability; they are **not different PPO-DAP algorithm versions**. See [Implementation map](docs/IMPLEMENTATION.md#why-some-files-have-g--and-v--names).
-
-## Installation
-
-The released package targets Python `3.12` and uses `uv 0.12.0` for the locked development environment.
+Install **Python 3.12.3** and **uv 0.12.0** first. The release uses a locked CPU PyTorch environment.
 
 ```bash
 git clone https://github.com/TianciGao/DiffPPO.git
 cd DiffPPO
 git checkout v0.1.0
 uv sync --frozen --all-groups
-```
-
-The stable release is also available as wheel and source distribution from the [v0.1.0 GitHub Release](https://github.com/TianciGao/DiffPPO/releases/tag/v0.1.0).
-
-## Quick verification
-
-```bash
 uv run python -c "import ppo_dap; print(ppo_dap.__file__)"
 uv run pytest
 ```
 
-The validated `v0.1.0` release completed the full suite with:
+The [release record](docs/releases/v0.1.0.md) reports **350 tests passed, 0 failed**. These checks cover software behavior; they do not run the paper's training experiments. A wheel and source archive are available on the [download page](https://github.com/TianciGao/DiffPPO/releases/tag/v0.1.0).
 
-```text
-350 passed / 0 failed
-```
+## Where to start
 
-## Using the library
+| Goal | Page |
+| --- | --- |
+| Understand the method | [Algorithm guide](docs/ALGORITHM.md) |
+| Find the relevant code | [Implementation guide](docs/IMPLEMENTATION.md) |
+| Understand what was checked and its limits | [Validation and limitations](docs/THEORY_CONFORMANCE.md) |
+| Follow experiment development | [Experiment documentation](https://github.com/TianciGao/DiffPPO/tree/experiment/paper-v6-e1/experiments/paper-v6) |
 
-`v0.1.x` is intentionally a **theory-core library**, not yet a turnkey MuJoCo experiment CLI. The package exposes the implementation components needed to build a paper experiment harness while keeping environment, dataset and runtime integration explicit.
+## Versions and branches
 
-Start with:
+| Version or branch | Purpose |
+| --- | --- |
+| [`v0.1.0`](https://github.com/TianciGao/DiffPPO/releases/tag/v0.1.0) | Fixed software release for installation and version-specific comparisons. |
+| [`main`](https://github.com/TianciGao/DiffPPO/tree/main) | Main documentation, algorithm library, and initial experiment configuration tools. |
+| [`experiment/paper-v6-e1`](https://github.com/TianciGao/DiffPPO/tree/experiment/paper-v6-e1) | Experiment interfaces, evaluation, and reporting tools under development. |
+| [`release/cleanroom-v0.1.0`](https://github.com/TianciGao/DiffPPO/tree/release/cleanroom-v0.1.0) | Branch used to prepare the first release; use the release tag for its original files. |
 
-- [docs/ALGORITHM.md](docs/ALGORITHM.md) — method and data flow;
-- [docs/IMPLEMENTATION.md](docs/IMPLEMENTATION.md) — code map and runtime layers;
-- [docs/THEORY_CONFORMANCE.md](docs/THEORY_CONFORMANCE.md) — audited theory boundaries.
-
-## Paper reproduction status
-
-The public theory implementation is complete; **empirical reproduction is tracked separately and is not claimed by `v0.1.0`**. A paper-scale experiment harness must freeze environment versions, logged datasets, seeds, evaluation protocol and runtime adapters before training begins.
-
-This separation is deliberate: experiment code may validate the released algorithm, but it must not redefine it to match a target score.
-
-## Theory conformance
-
-The clean-room implementation was audited against `247/247` paper-derived requirements with `0` conformance blockers. The detailed classification, residual boundaries and validation evidence are in [docs/THEORY_CONFORMANCE.md](docs/THEORY_CONFORMANCE.md).
-
-Machine-readable byte-level release provenance is retained in [docs/PROVENANCE.json](docs/PROVENANCE.json).
+The earlier implementation is preserved under the [historical tag](https://github.com/TianciGao/DiffPPO/tree/legacy-pre-cleanroom-main). The current implementation was developed from the paper independently of that earlier code.
 
 ## Citation
 
-If you use PPO-DAP or this implementation, please cite the paper:
+If you use this work, please cite:
 
 ```bibtex
 @article{gao2024ppodap,
   title   = {Enhancing Sample Efficiency and Exploration in Reinforcement Learning through the Integration of Diffusion Models and Proximal Policy Optimization},
   author  = {Gao, Tianci and Neusypin, Konstantin A. and Dmitriev, Dmitry D. and Yang, Bo and Rao, Shengren},
   journal = {arXiv preprint arXiv:2409.01427},
-  year    = {2024}
+  year    = {2024},
+  doi     = {10.48550/arXiv.2409.01427},
+  url     = {https://arxiv.org/abs/2409.01427v6}
 }
 ```
 
-A machine-readable citation is provided in [`CITATION.cff`](CITATION.cff).
-
-## Releases and legacy history
-
-- Current stable release: [`v0.1.0`](https://github.com/TianciGao/DiffPPO/releases/tag/v0.1.0)
-- Release record: [docs/releases/v0.1.0.md](docs/releases/v0.1.0.md)
-- The pre-clean-room public implementation remains reachable through the annotated tag `legacy-pre-cleanroom-main` and repository history.
+See [CITATION.cff](CITATION.cff) for citation metadata. When reporting software results, also record the tag or commit you used.
 
 ## License
 
-MIT License. See [LICENSE](LICENSE).
+[MIT](LICENSE).

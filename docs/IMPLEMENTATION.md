@@ -1,109 +1,63 @@
-# PPO-DAP implementation map
+# Finding your way around the code
 
-This document explains how the public `ppo_dap` package is organized. It is meant to answer a practical question: **where does each part of the paper live in the code?**
+The `ppo_dap` Python package contains the PPO-DAP algorithm and runtime components. Release `v0.1.0` is a research library: using it for a full experiment requires environment integration, a dataset, model configuration, and an evaluation protocol.
 
-The stable release is `v0.1.0`. The package is a theory-core library; the paper-scale MuJoCo experiment harness is intentionally separate and is not part of this release.
+Start with the [algorithm guide](ALGORITHM.md) for the method, then use the paths below to find its implementation.
 
-## Package map
+## Source map
 
-| Paper / runtime concern | Main public paths | Role |
+| Component | Source | What it does |
 | --- | --- | --- |
-| Action representation | `src/ppo_dap/actions/` | environment/action-space contracts and immutable action carriers |
-| PPO / GAE / values | `src/ppo_dap/estimators/` | GAE, PPO preparation, value/Q snapshots and targets |
-| Actor / critic / PET losses | `src/ppo_dap/objectives/` | optimization objectives with explicit parameter ownership |
-| Diffusion action prior | `src/ppo_dap/prior/` | denoiser, training noise, Eq. (6), sampler, trainer and publication boundary |
-| Value guidance | `src/ppo_dap/value_guidance/` | Eq. (7), Eq. (8) and Gaussian proxy support |
-| Composition boundaries | `src/ppo_dap/interfaces/` | actor, critic and PET composition / authority contracts |
-| Iteration model | `src/ppo_dap/algorithm/` | training state, iteration report, ports and the single iteration spine |
-| Production runtime | `src/ppo_dap/runtime/` | runner construction, persistent RNG, multi-iteration continuation, bundle replacement and checkpoint/resume |
-| Controlled initialization | `src/ppo_dap/warm_start/` | explicitly scoped warm-start dataset, losses and atomic execution |
-| Diagnostics | `src/ppo_dap/audit.py` | report-only training diagnostics and audit evidence |
+| Actions | [`actions/`](../src/ppo_dap/actions/) | Represents actions and converts between model and environment action spaces. |
+| Policy distributions | [`distributions/`](../src/ppo_dap/distributions/) | Implements Gaussian policy quantities and standard-deviation constraints. |
+| PPO and value estimates | [`estimators/`](../src/ppo_dap/estimators/) | Computes advantages, PPO inputs, value estimates, and training targets. |
+| Training losses | [`objectives/`](../src/ppo_dap/objectives/) | Defines actor, critic, and prior-adaptation objectives. |
+| Diffusion prior | [`prior/`](../src/ppo_dap/prior/) | Implements denoising, prior training, and action sampling. |
+| Value guidance | [`value_guidance/`](../src/ppo_dap/value_guidance/) | Weights candidate actions, applies denoising guidance, and constructs the Gaussian approximation. |
+| Model integration | [`interfaces/`](../src/ppo_dap/interfaces/) | Connects components and checks which parameters each update may change. |
+| Training iteration | [`algorithm/`](../src/ppo_dap/algorithm/) | Defines the order of operations and the data needed by one iteration. |
+| Repeated execution | [`runtime/`](../src/ppo_dap/runtime/) | Handles environment interfaces, random-number streams, and checkpoint/resume. |
+| Initialization | [`warm_start/`](../src/ppo_dap/warm_start/) | Provides explicitly configured initialization from recorded data. |
+| Diagnostics | [`audit.py`](../src/ppo_dap/audit.py) | Reports training measurements without changing the training procedure. |
 
-## Execution layers
+## Following a training update
 
-### 1. Mathematical kernels
+[`algorithm/iteration.py`](../src/ppo_dap/algorithm/iteration.py) is the starting point for reading the training loop. It coordinates rollout collection, PPO preparation, action guidance, model updates, and reporting.
 
-The lowest-level modules implement constrained mathematical operations such as Gaussian distributions, GAE, PPO quantities, diffusion-noise handling and value-guidance operations.
+The modules in `objectives/` and `interfaces/` check data provenance and gradient flow. For example, generated action suggestions may contribute to an auxiliary actor loss, while PPO and the critic continue to use fresh environment data.
 
-Relevant paths include:
+The `runtime/` modules repeat this process across iterations. An experiment must supply an environment adapter implementing the required operations, including state restoration if exact resume is needed.
 
-- `src/ppo_dap/distributions/`
-- `src/ppo_dap/estimators/`
-- `src/ppo_dap/prior/`
-- `src/ppo_dap/value_guidance/`
+## Running the tests
 
-### 2. Ownership-aware objectives
-
-`src/ppo_dap/objectives/` and `src/ppo_dap/interfaces/` compose the mathematical pieces while enforcing who is allowed to receive gradients. This is where the implementation prevents offline/synthetic data or the wrong parameter owner from silently entering an update.
-
-### 3. Iteration spine
-
-`src/ppo_dap/algorithm/iteration.py` is the framework-neutral single-iteration spine. State and identity carriers live beside it in `algorithm/state.py` and `algorithm/ports.py`.
-
-### 4. Production runtime
-
-`src/ppo_dap/runtime/` adds the capabilities required to run the frozen iteration semantics repeatedly:
-
-- environment capability boundaries;
-- persistent production RNG;
-- complete iteration bundles;
-- atomic successor installation;
-- Stage-II multi-iteration execution;
-- exact same-run checkpoint/resume.
-
-The runtime is deliberately framework-neutral. A MuJoCo/Gym-style experiment environment must implement the explicit environment capability rather than being hard-coded into the algorithm package.
-
-## Why some files have `g*` and `v*` names
-
-You will see filenames such as:
-
-- `runtime/g7_environment.py`
-- `runtime/g7_stage_ii.py`
-- `runtime/v1_bindings.py` through `v4_bindings.py`
-- `tests/g3/` through `tests/g7/`
-
-These labels come from the internal implementation and validation milestones used while reconstructing the paper. They are preserved in `v0.1.0` because the released source and tests were independently validated byte-for-byte.
-
-They do **not** mean that the repository contains multiple competing PPO-DAP algorithms. The public algorithm is the single theory-conformant release described in [ALGORITHM.md](ALGORITHM.md).
-
-Renaming these modules would be a source-level API/refactor change and is therefore deferred to a future API-stabilization release rather than mixed into documentation cleanup.
-
-## Tests
-
-The repository ships the full validation suite used for the public theory-core release. Test directories mirror the same historical implementation milestones:
-
-- `tests/g3/` — PPO core, rollout provenance and warm-start contracts;
-- `tests/g4/` — diffusion-prior kernels and publication compatibility;
-- `tests/g5/` — integrated value-guidance / actor / critic / PET slices;
-- `tests/g6/` — audit and diagnostic integration;
-- `tests/g7/` — production environment, RNG, multi-iteration, rearm and checkpoint/resume.
-
-Run all tests with:
+After following the [installation instructions](../README.md#install-and-check), run from the repository root:
 
 ```bash
 uv run pytest
 ```
 
-The validated `v0.1.0` release completed `350 passed / 0 failed`.
+The original `v0.1.0` release record reports **350 tests passed, 0 failed**. The root command runs the algorithm suite; the experiment subproject has its own test command and dependencies.
 
-## Public API status
+| Test directory | Coverage area |
+| --- | --- |
+| [`tests/g3/`](../tests/g3/) | PPO, rollout data, and initialization. |
+| [`tests/g4/`](../tests/g4/) | Diffusion-prior operations and model handoff. |
+| [`tests/g5/`](../tests/g5/) | Guidance and integrated actor, critic, and prior updates. |
+| [`tests/g6/`](../tests/g6/) | Diagnostics. |
+| [`tests/g7/`](../tests/g7/) | Environment interfaces, random-number state, repeated execution, and resume. |
 
-`v0.1.x` should be treated as a **research theory-core package**, not yet as a fully stabilized high-level SDK. Internal module names are public source but are not all promised as long-term semantic-versioning API endpoints.
+Numbered source filenames and test directories reflect development stages, not different PPO-DAP methods. They remain in place so existing imports and tests keep working. The tables above describe their actual purpose.
 
-The next user-facing layer is the independent paper experiment harness. It should depend on the released core and provide:
+## Experiment development
 
-- environment adapters;
-- dataset manifests/loaders;
-- Stage-I and Stage-II run configuration;
-- evaluation and paper metrics;
-- run manifests and resource logging.
+The [experiment branch](https://github.com/TianciGao/DiffPPO/tree/experiment/paper-v6-e1/experiments/paper-v6) adds configuration, environment interfaces, evaluation, and result reporting around the fixed `v0.1.0` library. Its documentation distinguishes implemented tooling from the remaining work needed for real training runs.
 
-That experiment layer may validate PPO-DAP, but it must not redefine the frozen algorithm to match a target result.
+The library's low-level interfaces may evolve in future releases. Pin a release or commit when building an experiment, and record the environment, dataset, configuration, and seeds alongside your results.
 
-## Further reading
+## Release records
 
-- [README](../README.md)
-- [Algorithm guide](ALGORITHM.md)
-- [Theory conformance](THEORY_CONFORMANCE.md)
-- [Machine-readable release provenance](PROVENANCE.json)
-- [v0.1.0 release record](releases/v0.1.0.md)
+- [Validation and limitations](THEORY_CONFORMANCE.md)
+- [Release notes](releases/v0.1.0.md)
+- [Original release file checksums and source history](PROVENANCE.json)
+
+The checksum record describes the original `v0.1.0` files. Later documentation revisions are recorded in Git history.

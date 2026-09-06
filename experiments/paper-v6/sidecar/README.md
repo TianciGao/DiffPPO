@@ -1,15 +1,11 @@
-# PPO-DAP paper-v6 legacy sidecar
+# Running an environment in a separate process
 
-This isolated subproject supplies only the versioned, digest-bound subprocess
-protocol and a deterministic test backend.  It has no Gym, D4RL, MuJoCo,
-Torch, or CUDA dependency.
+This subproject defines how the PPO-DAP experiment tools communicate with an environment running in another process. The code calls that process a **sidecar**. Keeping it separate allows an older simulator to use its own Python environment and dependencies.
 
-The bundled backend can start only with the explicit
-`--fixture-only-non-scientific` flag.  It is test infrastructure, not a
-scientific environment and not a default for an experiment run.  A real
-paper-era environment and its independently frozen dependency lock belong to
-E2.
+The included backend is a deterministic simulator for software tests. It requires the explicit `--fixture-only-non-scientific` flag and does not represent a MuJoCo task. A real environment backend and its fixed dependency versions still need to be supplied.
 
-Messages contain canonical JSON metadata and named, SHA256-bound byte
-payloads.  Pickle, runtime object graphs, shell commands, and serialized
-remote exception objects are outside the protocol.
+## Message format
+
+Messages use JSON metadata and named byte payloads, with SHA-256 checksums to check their integrity. They do not transfer executable Python objects or shell commands. The protocol does not use Python pickle serialization.
+
+This subproject itself has no Gym, D4RL, MuJoCo, PyTorch, or CUDA dependency. Its integration tests run through the [parent experiment project](../README.md#run-the-checks).

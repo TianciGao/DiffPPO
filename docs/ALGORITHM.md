@@ -1,97 +1,65 @@
-# PPO-DAP algorithm guide
+# How PPO-DAP works
 
-This page is a reader-facing guide to the implementation in this repository. The paper remains the scientific reference: [arXiv:2409.01427v6](https://arxiv.org/abs/2409.01427v6).
+PPO-DAP adds action suggestions from a diffusion model to Proximal Policy Optimization (PPO). The **actor** is the policy that chooses actions; the **critic** estimates their value. The diffusion model acts as an **action prior**: a learned distribution of plausible actions for a given state.
 
-## 1. Two-stage protocol
+The scientific reference is [paper version 6](https://arxiv.org/abs/2409.01427v6). This page explains how the repository implements its training flow.
 
-PPO-DAP separates the diffusion prior from the online PPO estimator.
+## Two training stages
 
-### Stage I — offline action prior
+**Offline pretraining.** A conditional diffusion model learns from recorded state-action trajectories. This gives it an initial action distribution before online interaction begins.
 
-A conditional diffusion model is pretrained on logged trajectories `D_off`. This stage learns a state-conditioned action prior over behavior-supported actions. `D_off` does not become an on-policy PPO batch later.
+**Online learning.** The policy collects new environment interactions. PPO learns from this fresh experience, while the prior generates additional action suggestions at the states the policy visited. Critic estimates guide these suggestions toward promising actions.
 
-### Stage II — strictly on-policy PPO with guided proposals
+The suggestions affect the actor through a small imitation loss and, optionally, a distribution-matching penalty. They do not enter PPO's probability-ratio estimator, advantage calculation, or critic update.
 
-Online training repeatedly collects a fresh rollout `D_on`, computes the PPO/GAE quantities from that rollout, and uses the diffusion prior only to generate auxiliary action proposals around the states that the current policy actually visited.
+## What each dataset is used for
 
-The important consequence is simple:
-
-> **PPO remains on-policy.** Offline logs and purely synthetic actions do not enter the PPO likelihood-ratio estimator.
-
-## 2. Data roles
-
-| Data object | Source | May affect | Must not be used as |
-| --- | --- | --- | --- |
-| `D_off` | logged/offline trajectories | Stage-I prior training; explicitly allowed initialization or diagnostics | current PPO/GAE rollout |
-| `D_on` | fresh environment interaction from the current policy | PPO, GAE, critic update, PET update, monitoring | offline behavior data |
-| `D_syn` | prior proposals generated at current on-policy states | low-weight actor auxiliary terms | on-policy PPO trajectories |
-
-This separation is enforced throughout the implementation rather than left as a training-script convention.
-
-## 3. One online iteration
-
-The runtime follows one ordered iteration spine:
-
-1. **Freeze entry state.** Capture the actor, critic and prior authorities used for the current iteration.
-2. **Collect a fresh rollout.** The environment produces the current `D_on` under the behavior policy for this iteration.
-3. **Prepare PPO inputs.** Compute GAE, returns and the frozen behavior quantities used by PPO.
-4. **Generate proposals.** At states from `D_on`, the diffusion prior generates multiple candidate actions.
-5. **Apply value guidance.** Candidate actions are concentrated toward high-value regions through the paper's value-guidance mechanisms.
-6. **Update the actor.** Optimize the fresh on-policy PPO objective together with the allowed low-weight auxiliary terms.
-7. **Update the critic.** Update the value/Q owner using the current online batch.
-8. **Update PET when triggered.** Adapt only the designated PET/LoRA subset; the prior backbone remains frozen online.
-9. **Monitor and commit.** Diagnostics are read-only, the iteration is committed, and only then may the next iteration authority be constructed.
-
-## 4. Value-guided proposals
-
-The implementation separates the three roles that are easy to conflate in a monolithic training loop:
-
-- **Eq. (7):** critic-based energy weighting / resampling of candidate actions;
-- **Eq. (8):** gradient guidance performed inside the denoising process rather than as a post-hoc action correction;
-- **Eq. (9):** actor-side regularization through the tractable detached Gaussian proxy used by the implementation.
-
-The Gaussian proxy is a computational device. It is not claimed to equal the full diffusion action distribution or to provide an exact theory-KL identity. See [Theory conformance](THEORY_CONFORMANCE.md) for the audited claim boundary.
-
-## 5. Parameter ownership
-
-| Component | Online update owner | Key restriction |
+| Data | Paper notation | Use in this implementation |
 | --- | --- | --- |
-| Actor | actor parameters `θ` | PPO uses fresh `D_on`; synthetic proposals enter only allowed auxiliary terms |
-| Critic | shared value/Q parameters `φ` | updated from current online data |
-| Diffusion prior backbone | frozen online | no hidden full-prior optimization during Stage II |
-| PET / LoRA subset | `ψ_PET` | only the designated small parameter subset is adapted |
+| Recorded trajectories | `D_off` | Train the action prior; support explicitly configured initialization or diagnostics. |
+| Fresh policy rollouts | `D_on` | Compute PPO and generalized advantage estimation (GAE); update the critic and the prior's small trainable subset. |
+| Generated action suggestions | `D_syn` | Supply auxiliary actor losses at the visited states. |
 
-The implementation treats these ownership rules as contracts so gradients cannot silently cross into the wrong model component.
+Only fresh policy rollouts supply PPO's on-policy training data. The code checks these data roles when constructing training inputs.
 
-## 6. Runtime and randomness
+## One online iteration
 
-Production randomness is explicit and non-aliased across the behavior policy, raw proposals, optional guided proposals, Eq. (7) resampling, PET updates and diagnostic replay. The runtime does not silently reseed through hidden default generators.
+1. **Save the starting models.** Keep fixed copies of the policy, critic, and prior needed to evaluate this iteration consistently.
+2. **Collect experience.** Run the policy in the environment to obtain a fresh rollout.
+3. **Prepare PPO inputs.** Compute advantages, return targets, and the action probabilities recorded during collection.
+4. **Generate and guide actions.** Sample candidate actions from the prior at the visited states and apply critic-based guidance.
+5. **Update the actor.** Combine the PPO objective with the configured auxiliary losses.
+6. **Update the critic.** Learn from the current rollout.
+7. **Adapt the prior when scheduled.** Update only the designated small parameter subset; keep the main diffusion network fixed.
+8. **Record diagnostics and finish.** Complete the iteration before preparing the next one.
 
-Multi-iteration execution uses a complete successor bundle that is validated before atomic installation. A failed production iteration is terminal for that run rather than silently retried with altered random state.
+## How value guidance is applied
 
-## 7. Checkpoint and resume
+| Mechanism | Paper reference | Role |
+| --- | --- | --- |
+| Candidate weighting and resampling | Eq. (7) | Give greater weight to candidate actions with higher critic estimates. |
+| Guidance during denoising | Eq. (8) | Use critic gradients within action generation. |
+| Optional prior regularization | Eq. (9) | Encourage the actor to stay close to an approximation of the prior. |
 
-Checkpointing is intentionally strict:
+For the optional regularizer, the implementation uses a Gaussian approximation held fixed during the actor update. Its Kullback-Leibler (KL) divergence is tractable, but it is not the exact KL divergence to the full diffusion distribution.
 
-- a checkpoint is legal only after a successful committed iteration and before constructing the next iteration bundle;
-- resume restores the same run, lineage, RNG state and checkpointable environment state;
-- if exact restoration is unavailable, resume fails closed rather than creating an approximate continuation.
+## Which parameters change
 
-This is an implementation reproducibility contract, not an additional claim from the paper.
+| Component | Online update |
+| --- | --- |
+| Actor | PPO and the configured auxiliary losses. |
+| Critic | Current environment rollouts. |
+| Main diffusion network | Kept fixed. |
+| Prior adaptation parameters | Updated from current rollouts when scheduled. |
 
-## 8. Monitoring
+Updating only a small subset is called **parameter-efficient tuning (PET)** in the paper; low-rank adaptation (LoRA) is one such approach. The implementation checks which parameters each loss may update.
 
-The audit layer reports diagnostics such as gradient- and KL-related quantities. In `v0.1.0` these diagnostics are **report-only**: they do not trigger hidden early stopping, automatic hyperparameter changes or an active safety response.
+## Reproducibility and diagnostics
 
-## 9. What this release does not claim
+The runtime maintains separate random-number streams for policy actions, candidate generation, resampling, prior adaptation, and diagnostic replay. It validates all inputs needed for the next iteration before installing them together. If an iteration fails, the run stops instead of retrying with a changed random state.
 
-The theory-core release does not claim that:
+Checkpoints are taken between completed iterations. Resuming the same run requires restoring model state, random-number state, and any environment state required by the adapter. If exact restoration is unavailable, the runtime rejects the resume request. Actual environment support must be established by the experiment integration.
 
-- its clean-room diffusion prior is the paper's unique possible prior or a specific named reverse solver;
-- finite TD-MAE is a true-Q oracle or strict theoretical proof;
-- the Gaussian proxy is the real diffusion distribution;
-- Proposition 1 / Eq. (14) is stronger than stated in the paper;
-- runtime initial-state handling uniquely identifies the paper's `ρ₀` or provides exact `J/ΔJ` oracles;
-- finite monitoring creates a guaranteed threshold response.
+Diagnostics report training quantities. In `v0.1.0`, they do not automatically stop training, change hyperparameters, or guarantee a performance bound.
 
-For the complete audited wording, see [THEORY_CONFORMANCE.md](THEORY_CONFORMANCE.md).
+See [validation and limitations](THEORY_CONFORMANCE.md) for the scope of the implementation checks and [the implementation guide](IMPLEMENTATION.md) for source locations.

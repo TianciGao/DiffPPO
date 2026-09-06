@@ -1,48 +1,47 @@
-# PPO-DAP paper-v6 experiment harness
+# Experiment tools
 
-This subproject is the fail-closed harness for prospective paper-v6
-experiments. Its algorithm authority remains the immutable public release
-`TianciGao/DiffPPO@v0.1.0`, commit
-`31dac8148a84204b9db506909edd8fb92822fcba`.
+This directory provides configuration, environment interfaces, evaluation, and reporting tools for [PPO-DAP paper version 6](https://arxiv.org/abs/2409.01427v6). It uses the fixed [`v0.1.0` algorithm library](https://github.com/TianciGao/DiffPPO/releases/tag/v0.1.0).
 
-The completed E1 S1/S2/S3 harness provides:
+**The tools have been developed and tested with a simulated test backend. Real-environment training and full reproduction of the paper's results remain unfinished.**
 
-- fail-closed protocol configuration, canonical run and dataset manifests,
-  and deterministic nonalias RNG stream identities and seed derivation;
-- a versioned, digest-bound, non-pickle legacy sidecar transport with a
-  deterministic `fixture_only_non_scientific` backend;
-- a G7 environment adapter and exact opaque checkpoint bridge;
-- a Stage-I public-carrier builder and explicit launcher boundary;
-- a Stage-II all-required public-authority builder;
-- validation and ownership binding for caller-supplied actor and critic
-  modules, without a default scientific architecture;
-- deterministic mean-action evaluation;
-- ALC@40, Student-t 95% confidence intervals, and matched-pair Wilcoxon
-  metrics;
-- report-only resource monitoring and immutable artifact publication.
+## Available tools
 
-E1 does not include a real Gym, D4RL, MuJoCo, or other scientific environment
-backend. No real environment has been constructed or executed, no dataset has
-been downloaded, no Stage-I or Stage-II training has run, and no GPU workload
-has run. The harness supplies no scientific defaults, and every test recipe or
-backend value is marked `fixture_only_non_scientific`.
+| Area | What is implemented |
+| --- | --- |
+| Configuration and records | Required experiment settings, dataset and run records, and reproducible random-number streams. |
+| Environment connection | A separate-process communication layer, an environment adapter, and checkpoint-state transfer. |
+| Training integration | Input builders for prior pretraining and online learning, plus checks for caller-supplied actor and critic models. |
+| Evaluation | Deterministic evaluation using the policy's mean action. |
+| Metrics | Area under the learning curve over the first 40 epochs (ALC@40), Student-t 95% confidence intervals, and paired Wilcoxon comparisons. |
+| Reporting | Resource measurements and output records protected against accidental overwriting. |
 
-The unresolved scientific choices D01, D02, D05, and D06 must be supplied in
-an explicit protocol document before the corresponding real experiment.
-Missing values are contract violations; they are never inferred.
+See the [source directory](src/ppo_dap_paper_v6/) and the [separate-process environment documentation](sidecar/README.md).
 
-This harness is not evidence that the paper experiments have been completed:
-`empirical_reproduction=false`.
+## What is needed for a real experiment
 
-## Bounded harness checks
+A real Gym, D4RL, or MuJoCo backend is not included. The current implementation record reports no real-environment execution, dataset download, prior pretraining, online training, or GPU workload.
 
-From this directory, with Python 3.12.3 and uv 0.12.0:
+Before training, provide a compatible environment and dataset, then document these settings:
 
-```console
+| Area | Required choices |
+| --- | --- |
+| Repeated runs | Random seeds, number of runs, and matching of seeds across methods. |
+| Evaluation | Evaluation frequency, episode count, time limits, and learning-curve measurement points. |
+| Prior pretraining | Model size, number of training passes, learning rate, numeric precision, and noise settings. |
+| Actor and critic | Network sizes, initialization, policy standard-deviation limits, discount factor, and update settings. |
+
+The [configuration schema](schemas/protocol-config-v1.json) and [configuration code](src/ppo_dap_paper_v6/config.py) define the exact fields. Missing settings are rejected; the test recipes do not supply scientific defaults. The dependency set for the real environment must also be fixed and recorded.
+
+## Run the checks
+
+Use a checkout of `experiment/paper-v6-e1` with **Python 3.12.3** and **uv 0.12.0** installed. From the repository root:
+
+```bash
+cd experiments/paper-v6
 uv sync --frozen --all-groups
 uv run pytest
 ```
 
-These checks are bounded unit and release-identity tests. They use only the
-fixture sidecar backend; they do not construct a real environment, consume real
-environment steps, use a GPU, or run PPO-DAP training.
+The tests use only the deterministic test backend. They check interfaces and library compatibility without running a real simulator, GPU workload, or PPO-DAP training experiment. The label `fixture_only_non_scientific` in test files means exactly that: software-test data only.
+
+The algorithm dependency is pinned to commit [`31dac8148a84204b9db506909edd8fb92822fcba`](https://github.com/TianciGao/DiffPPO/commit/31dac8148a84204b9db506909edd8fb92822fcba). Pin the experiment branch to a commit as well when recording a run.
