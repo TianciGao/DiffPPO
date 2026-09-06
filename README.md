@@ -1,48 +1,18 @@
-# PPO-DAP clean-room theory-v6
+# PPO-DAP v0.1.0 release branch
 
-This repository is an independent clean-room implementation derived from
-[`arXiv:2409.01427v6`](https://arxiv.org/abs/2409.01427v6). It was developed
-without using the original project repository or its implementation as an
-algorithm authority.
+This branch was used to prepare the first release of **PPO with a Diffusion Action Prior (PPO-DAP)**. For the original released files, use the fixed [`v0.1.0` tag](https://github.com/TianciGao/DiffPPO/releases/tag/v0.1.0). For the main project introduction and current documentation, see [`main`](https://github.com/TianciGao/DiffPPO/tree/main).
 
-## Release status
+## What the library provides
 
-- Clean-room source authority: `TianciGao/DPPO` annotated tag
-  `theory-v6-local-ready` at
-  `64337ea47e0939a1f019b6c21ef5d35641a42e4c`.
-- Public package version: `0.1.0`; the final public release tag is `v0.1.0`.
-- Algorithm implementation: complete.
-- Theory conformance audit: complete (`247/247` requirements; `181` supported,
-  `39` explicit project choices, `11` correctly scoped optional requirements,
-  `16` paper-underspecified fail-closed requirements, and `0` blockers).
-- Open-question ledger: `24 Resolved / 0 Open`.
-- Empirical reproduction: **not completed and not claimed**.
+PPO-DAP uses a diffusion model to suggest actions at states visited by the policy. Critic estimates guide those suggestions, which contribute a small auxiliary policy loss. PPO's training estimates and critic updates use fresh environment interactions.
 
-The validated implementation evidence includes a native-Linux full suite of
-`350 passed / 0 failed` with exit code `0`. This is implementation-validation
-evidence, not evidence that the paper's rewards, learning curves, runtime,
-training duration, GPU behavior, or benchmarks have been reproduced.
+The release contains the algorithm components, tests, and a locked Python 3.12 / CPU PyTorch environment. It implements the method described in [paper version 6](https://arxiv.org/abs/2409.01427v6), independently of the earlier repository implementation.
 
-## Claim boundaries
+The release record reports **350 tests passed, 0 failed**. The implementation review covered **247 requirements**. These checks concern software behavior and correspondence with the paper; full experiment reproduction remains unfinished.
 
-The theory-conformance result retains the six audited fail-closed boundaries:
+## Install and check the release
 
-- the clean-room prior is not claimed to be the paper's unique `p_psi` or any
-  named reverse solver;
-- finite TD-MAE is not true-Q, a visited-set supremum oracle, or a strict-eta
-  proof;
-- the Gaussian proxy is not the real diffusion distribution or an exact
-  theory-KL identity;
-- Proposition 1 and Eq. (14) are not elevated to a formal theorem, guarantee,
-  training objective, or numerical oracle;
-- the runtime initial-state source is not claimed to be the paper's unique
-  `rho_0` and supplies no exact `J` or `Delta J` oracle;
-- finite monitoring remains report-only and supplies neither a threshold
-  guarantee nor an active response.
-
-## Install and verify
-
-Python `3.12` and `uv 0.12.0` are required. For the published release:
+Install **Python 3.12.3** and **uv 0.12.0** first:
 
 ```bash
 git clone https://github.com/TianciGao/DiffPPO.git
@@ -53,22 +23,15 @@ uv run python -c "import ppo_dap; print(ppo_dap.__file__)"
 uv run pytest
 ```
 
-Before `v0.1.0` is published, release-candidate validation uses the same
-commands after checking out `release/cleanroom-v0.1.0` at its exact candidate
-commit.
+A complete MuJoCo experiment runner, benchmark configurations, and pretrained models are outside this release. Follow the [experiment branch](https://github.com/TianciGao/DiffPPO/tree/experiment/paper-v6-e1/experiments/paper-v6) for that work.
 
-## Public scope
+## Documentation
 
-This is a library/theory-core release. It contains the clean-room
-`ppo_dap` package, its tests, locked package metadata, public release notes,
-theory-conformance boundaries, and byte-level provenance. It does not include
-an experiment harness, benchmark configuration, trained models, or a claim of
-production deployment readiness. See
-[the conformance statement](docs/THEORY_CONFORMANCE.md),
-[release notes](RELEASE_NOTES.md), and
-[provenance manifest](docs/PROVENANCE.json).
+- [Release notes and downloads](RELEASE_NOTES.md)
+- [Validation and limitations](docs/THEORY_CONFORMANCE.md)
+- [Original release checksums and source history](docs/PROVENANCE.json)
+- [Paper citation](https://github.com/TianciGao/DiffPPO/blob/main/CITATION.cff)
 
-The later experimental-server track is separate from this theory release. GPU
-smoke tests, complete training, multi-seed studies, ablations, and empirical
-result publication cannot redefine the frozen algorithm and are not part of
-this release.
+The checksum record refers to the original tagged release. Documentation edits on this branch do not alter that tag or its downloadable packages.
+
+License: [MIT](LICENSE).

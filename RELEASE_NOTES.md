@@ -1,43 +1,34 @@
-# PPO-DAP clean-room theory-v6 — v0.1.0
+# PPO-DAP v0.1.0
 
-This release packages an independent clean-room implementation based on
-[`arXiv:2409.01427v6`](https://arxiv.org/abs/2409.01427v6). The source
-authority is `TianciGao/DPPO` annotated tag `theory-v6-local-ready`, peeled to
-commit `64337ea47e0939a1f019b6c21ef5d35641a42e4c`.
+Published 20 August 2026 · [Download this release](https://github.com/TianciGao/DiffPPO/releases/tag/v0.1.0)
+
+This release provides the `ppo_dap` research library implementing PPO with a Diffusion Action Prior, based on [paper version 6](https://arxiv.org/abs/2409.01427v6).
 
 ## Included
 
-- the `ppo_dap` theory-core library;
-- the complete clean-room test suite;
-- locked Python 3.12 / CPU Torch package metadata;
-- curated theory-conformance and byte-level provenance records.
+- PPO and advantage estimation, a conditional diffusion action prior, critic-based action guidance, and auxiliary policy losses.
+- Parameter-efficient prior adaptation, random-number management, and checkpoint/resume components.
+- The algorithm test suite and a locked Python 3.12 / CPU PyTorch environment.
+- A wheel, source archive, checksums, and validation records.
 
-The source authority completed a native-Linux suite with `350 passed / 0
-failed`. The public candidate must independently pass fresh-clone, locked
-install, wheel/sdist, clean-install, provenance, privacy, README-command, and
-full-suite validation before this release is published.
+## Validation
 
-## Claim boundary
+The release record reports **350 tests passed, 0 failed**. It also records checks of dependency installation, package builds, installation into a clean environment, imports, documented commands, and agreement with the reviewed source files. The published release had the same file tree as the validated candidate.
 
-Algorithm implementation and theory conformance are complete for the 247
-audited requirements. This release is not an experimental reproduction. It
-does not claim reproduction of paper rewards, learning curves, runtime,
-training duration, GPU behavior, or benchmarks.
+The download page includes these records:
 
-The six fail-closed boundaries remain authoritative:
+| File | Purpose |
+| --- | --- |
+| `R2_VALIDATION.json` | Results of the release checks. |
+| `R2_RECONCILIATION.json` | Links the validated candidate to the published release. |
+| `SHA256SUMS` | Checksums for the wheel and source archive. |
 
-1. The clean-room prior is not claimed to be the paper's unique `p_psi` or a
-   named reverse solver.
-2. Finite TD-MAE is not true-Q, a visited-set supremum oracle, or a strict-eta
-   proof.
-3. The Gaussian proxy is not the real diffusion distribution or exact
-   theory-KL identity.
-4. Proposition 1 and Eq. (14) are not a formal theorem, guarantee, training
-   objective, or numerical oracle.
-5. The runtime initial-state source is not the paper's unique `rho_0` and is
-   not an exact `J` or `Delta J` oracle.
-6. Finite monitoring is report-only; it provides neither a threshold
-   guarantee nor an active response.
+## Scope
 
-Experiment adapters, server runs, GPU validation, empirical results, PyPI,
-and container publication are outside this release.
+This version supplies algorithm components. It does not include a complete MuJoCo experiment runner, benchmark configurations, or pretrained models. Full reproduction of the paper's rewards, learning curves, runtime, and GPU measurements with this implementation remains incomplete.
+
+The [implementation review and its limitations](https://github.com/TianciGao/DiffPPO/blob/main/docs/THEORY_CONFORMANCE.md) describe the 247 reviewed requirements, the 24 resolved implementation questions, and the six retained limitations. Software checks are not evidence of reproduced experimental results.
+
+The [provenance record](https://github.com/TianciGao/DiffPPO/blob/main/docs/PROVENANCE.json) identifies the original release files and their source history. The fixed release tag is `v0.1.0`; later branch documentation can be revised without changing the release. The earlier implementation remains available under the [historical tag](https://github.com/TianciGao/DiffPPO/tree/legacy-pre-cleanroom-main).
+
+License: [MIT](https://github.com/TianciGao/DiffPPO/blob/v0.1.0/LICENSE).
