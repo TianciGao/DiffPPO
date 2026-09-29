@@ -15,8 +15,6 @@ This repository implements the method described in [our paper](https://arxiv.org
 
 The paper evaluates PPO-DAP on eight MuJoCo tasks with an online budget of one million environment steps per task, following offline pretraining. It reports improved early learning and final returns that match or exceed the strongest on-policy baselines on six of the eight tasks. See the [paper](https://arxiv.org/abs/2409.01427v6) for the full comparisons and protocol.
 
-**These are the paper's reported results. Reproducing them with this implementation remains unfinished.** The released software provides the algorithm components and their tests; experimental tooling is being developed separately.
-
 ## How it works
 
 1. **Learn action suggestions.** Train a state-conditioned diffusion model on recorded trajectories.
@@ -39,8 +37,6 @@ uv run python -c "import ppo_dap; print(ppo_dap.__file__)"
 uv run pytest
 ```
 
-The [release record](docs/releases/v0.1.0.md) reports **350 tests passed, 0 failed**. These checks cover software behavior; they do not run the paper's training experiments. A wheel and source archive are available on the [download page](https://github.com/TianciGao/DiffPPO/releases/tag/v0.1.0).
-
 ## Where to start
 
 | Goal | Page |
@@ -56,7 +52,6 @@ The [release record](docs/releases/v0.1.0.md) reports **350 tests passed, 0 fail
 | [`main`](https://github.com/TianciGao/DiffPPO/tree/main) | Main documentation, algorithm library, and initial experiment configuration tools. |
 | [`experiment/paper-v6-e1`](https://github.com/TianciGao/DiffPPO/tree/experiment/paper-v6-e1) | Experiment interfaces, evaluation, and reporting tools under development. |
 | [`release/cleanroom-v0.1.0`](https://github.com/TianciGao/DiffPPO/tree/release/cleanroom-v0.1.0) | Branch used to prepare the first release; use the release tag for its original files. |
-
 
 ## Citation
 
