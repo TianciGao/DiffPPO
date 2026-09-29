@@ -37,8 +37,6 @@ uv run python -c "import ppo_dap; print(ppo_dap.__file__)"
 uv run pytest
 ```
 
-The [release record](docs/releases/v0.1.0.md) reports **350 tests passed, 0 failed**. These checks cover software behavior; they do not run the paper's training experiments. A wheel and source archive are available on the [download page](https://github.com/TianciGao/DiffPPO/releases/tag/v0.1.0).
-
 ## Where to start
 
 | Goal | Page |
