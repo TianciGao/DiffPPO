@@ -59,7 +59,6 @@ The [release record](docs/releases/v0.1.0.md) reports **350 tests passed, 0 fail
 | [`experiment/paper-v6-e1`](https://github.com/TianciGao/DiffPPO/tree/experiment/paper-v6-e1) | Experiment interfaces, evaluation, and reporting tools under development. |
 | [`release/cleanroom-v0.1.0`](https://github.com/TianciGao/DiffPPO/tree/release/cleanroom-v0.1.0) | Branch used to prepare the first release; use the release tag for its original files. |
 
-The earlier implementation is preserved under the [historical tag](https://github.com/TianciGao/DiffPPO/tree/legacy-pre-cleanroom-main). The current implementation was developed from the paper independently of that earlier code.
 
 ## Citation
 
