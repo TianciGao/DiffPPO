@@ -15,8 +15,6 @@ This repository implements the method described in [our paper](https://arxiv.org
 
 The paper evaluates PPO-DAP on eight MuJoCo tasks with an online budget of one million environment steps per task, following offline pretraining. It reports improved early learning and final returns that match or exceed the strongest on-policy baselines on six of the eight tasks. See the [paper](https://arxiv.org/abs/2409.01427v6) for the full comparisons and protocol.
 
-**These are the paper's reported results. Reproducing them with this implementation remains unfinished.** The released software provides the algorithm components and their tests; experimental tooling is being developed separately.
-
 ## How it works
 
 1. **Learn action suggestions.** Train a state-conditioned diffusion model on recorded trajectories.
