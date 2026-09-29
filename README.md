@@ -47,8 +47,6 @@ The [release record](docs/releases/v0.1.0.md) reports **350 tests passed, 0 fail
 | --- | --- |
 | Understand the method | [Algorithm guide](docs/ALGORITHM.md) |
 | Find the relevant code | [Implementation guide](docs/IMPLEMENTATION.md) |
-| Understand what was checked and its limits | [Validation and limitations](docs/THEORY_CONFORMANCE.md) |
-| Follow experiment development | [Experiment documentation](https://github.com/TianciGao/DiffPPO/tree/experiment/paper-v6-e1/experiments/paper-v6) |
 
 ## Versions and branches
 
